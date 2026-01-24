@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chance.ai 🎲✨
 
-## Getting Started
+**Made by Emoo Wang** (aka the lord of serendipitous connections)
 
-First, run the development server:
+## What is this?
 
+Chance.ai is not your average chatbot. It's a community-powered Q&A platform where curiosity meets connection. Ask a question, get an answer, and discover what other curious humans wondered about the same thing. It's like Stack Overflow met a dating app, but for your brain.
+
+## The Magic ✨
+
+1. **Ask anything** - Our AI answers your burning questions
+2. **See similar vibes** - Check out what others with similar questions discovered
+3. **Connect IRL** - Share emails and bond over mutual curiosity (optional, we're not forcing friendship)
+
+Think of it as: "You're not alone in Googling that weird thing at 3am."
+
+## Tech Stack (for the nerds 🤓)
+
+- **Frontend**: React + Next.js
+- **Database**: Supabase
+- **Deployment**: Vercel
+- **AI**: OpenAI API (sorry claude, I can explain...)
+
+## Why?
+
+Nice answer: Because sometimes the best answer isn't just *what* you learn, but discovering that someone else wondered the exact same thing. Knowledge is better when shared, and curiosity loves company.
+
+Genuine: Sorry just my personal interest is to stalk what thers are curious about.
+
+## Running Locally
 ```bash
+# Clone this
+git clone [your-repo-url]
+
+# Install dependencies (grab a coffee, this'll take a sec)
+npm install
+
+# Set up your env variables (don't commit these, I'm watching 👀)
+# Create a .env.local with:
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - SUPABASE_SERVICE_ROLE_KEY
+# - OPENAI_API_KEY
+
+# Run it
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Visit localhost:3000 and ask away!
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Contributing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Found a bug? Have an idea? PRs welcome! Just remember: we're here to connect people through questions, not to build Skynet.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
 
-## Learn More
+MIT (Make It Thoughtful)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+*Built with curiosity, caffeine, and a questionable amount of Stack Overflow tabs open.*
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Emoo Wang** | [emoowang.com](https://emoowang.com)
