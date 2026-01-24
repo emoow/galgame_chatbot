@@ -20,7 +20,11 @@ export default function ChatPage() {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: input, userId }),
+      body: JSON.stringify({
+      prompt: input,
+      email: session.user?.email ?? "",
+      history: messages, // 前端维护
+    }),
     });
     console.log("Response status:", res.status);
     const data = await res.json();
