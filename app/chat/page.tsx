@@ -67,11 +67,36 @@ export default function ChatPage() {
         const data = await res.json();
 
         const historyChats = (data.chats ?? []).map(
-          (chat: { chat_id: string }) => ({
-            chat_id: chat.chat_id,
-            isTemp: false,
-            messages: [{ role: "assistant", content: DEFAULT_WELCOME }],
-          })
+          (chat: {
+            chat_id: string;
+            messages: {
+              role: "user" | "assistant";
+              content: string;
+              created_at: string;
+            }[];
+          }) => {
+            // ① 按时间排序（老的在上）
+            const sortedMessages = [...chat.messages].sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+            );
+
+            // ② 去掉 created_at，转成前端标准格式
+            const messages = sortedMessages.map(({ role, content }) => ({
+              role,
+              content,
+            }));
+
+            return {
+              chat_id: chat.chat_id,
+              isTemp: false,
+              messages:
+                messages.length > 0
+                  ? messages
+                  : [{ role: "assistant", content: DEFAULT_WELCOME }],
+            };
+          }
         );
         const tempChat = {
           chat_id: null,
@@ -79,7 +104,7 @@ export default function ChatPage() {
           messages: [{ role: "assistant", content: DEFAULT_WELCOME }],
         };
 
-        setChats([tempChat, ...historyChats]);
+        setChats([tempChat, ...historyChats.reverse()]);
         setCurrentChatIdx(0);
       })();
     }, [session]);

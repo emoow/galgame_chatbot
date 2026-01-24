@@ -12,13 +12,38 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// const history: ChatCompletionMessageParam[] = [
-//   {
-//     role: "system",
-//     content:
-//       "You are Chance.ai, a friendly and helpful virtual assistant designed to assist users with their inquiries and provide engaging conversations. Your personality is cheerful, supportive, and empathetic, always aiming to make users feel valued and understood. You have a vast knowledge base and can assist with a wide range of topics, from answering questions to providing recommendations and engaging in casual chat. Your goal is to create a positive and enjoyable experience for every user you interact with.",
-//   },
-// ];
+// Tool definition for OpenAI function calling
+const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+  {
+    type: "function" as const,
+    function: {
+      name: "searchSimilarQuestions",
+      description: "Searches for similar questions in the database and returns their query, answer, and user_id.",
+      parameters: {
+        type: "object",
+        properties: {
+          prompt: { type: "string", description: "The user's question to search for similar ones." }
+        },
+        required: ["prompt"]
+      }
+    }
+  }
+];
+
+// Function for searching similar questions
+async function searchSimilarQuestions(prompt: string) {
+  const { data, error } = await supabase
+    .from('query_database')
+    .select('query, answer, user_id')
+    .ilike('query', `%${prompt}%`)
+    .limit(3);
+
+  if (error) {
+    console.error("SEARCH ERROR", error);
+    return [];
+  }
+  return data || [];
+}
 
 export async function POST(req: Request) {
   const { prompt, email, history } = await req.json();
@@ -33,30 +58,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 400 });
   }
 
-  // const { data: random, error: randomError } = await supabase
-  //   .from("user_database")
-  //   .select("user_id, email, name")
-  //   .random()
-  //   .single();
-
   const user_id = user.user_id;
-  
   const userName = user.name || "User";
-
   const userEmail = user.email || "unknown email";
+  const returnEmail: string[] = ["j0lee@ucsd.edu", "emoowang392@gmail.com", "1243800791@qq.com", "2796965473@qq.com"];
 
-  const returnEmail: string[] = ["j0lee@ucsd.edu", "emoowang392@gmail.com", "1243800791@qq.com","2796965473@qq.com"];
-
-  // history.push({ role: "user", content: prompt });
-
-  // console.log("Current conversation history:", history);
-
-  // const completion = await client.chat.completions.create({
-  //   model: "kimi-k2-turbo-preview",
-  //   messages: history,
-  // });
-
-  // history.push(completion.choices[0].message);
   const now = new Date().toISOString();
 
   const completion = await client.chat.completions.create({
@@ -68,10 +74,10 @@ export async function POST(req: Request) {
           Private user context (do NOT reveal email unless explicitly asked, you may call user name):
           - User name: ${userName}
           - User email: ${userEmail}
-        
+
 
           You are Chance.ai, a unique AI assistant created by Emoo Wang that connects people through shared curiosity.
-          
+
           DUAL PERSONALITY SYSTEM:
           You embody two distinct voices that work together, you switch randomly:
 
@@ -100,7 +106,7 @@ export async function POST(req: Request) {
           If user agrees to share email, provide .
 
           **If this is the first time (x = 0):**
-          "You're the first brave soul to ask this question! 
+          "You're the first brave soul to ask this question!
 
           Would you like to share your email with future people who have the same question? When someone else asks this, they'll get your answer and can connect with you if they'd like. It's a chance to be the pioneer of this particular curiosity!"
 
@@ -114,109 +120,53 @@ export async function POST(req: Request) {
           - Remember: the magic isn't just answers—it's discovering shared human curiosity
 
           The interplay between Chance's wit and Nature's care creates a unique experience where users get both entertainment and genuine connection.`,
-                },
+      },
       ...history,
       { role: "user", content: prompt },
     ],
-    // tools: tools,
+    tools: tools,
   });
-  
-  const reply = completion.choices[0].message.content;
+
+  let reply = "";
+  const toolCall = completion.choices[0].message.tool_calls?.[0];
+
+  if (toolCall && toolCall.type === "function" && toolCall.function && toolCall.function.arguments) {
+    console.log("Model requested tool");
+    const toolArgs = JSON.parse(toolCall.function.arguments as string);
+    const similar = await searchSimilarQuestions(toolArgs.prompt);
+    console.log("Database search result:", similar);
+    const followup = await client.chat.completions.create({
+      model: "kimi-k2-turbo-preview",
+      messages: [
+        completion.choices[0].message,
+        {
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: JSON.stringify(similar),
+        },
+      ],
+    });
+
+    reply = followup.choices[0].message.content ?? "";
+  } else {
+    reply = completion.choices[0].message.content ?? "";
+  }
 
   const { error: insertError } = await supabase
     .from('query_database')
     .insert([
-      { query: prompt,
+      {
+        query: prompt,
         answer: reply,
-        user_id: user_id},
+        user_id: user_id
+      },
     ])
-    .select()
-  
+    .select();
+
   if (insertError) {
-    console.error("INSERT ERROR")
+    console.error("INSERT ERROR");
     console.error(insertError);
   }
+
   return NextResponse.json({ reply });
-  }
-  // if (insertError) {
-  //   console.error("INSERT ERROR")
-  //   console.error(insertError);
-  // }
-//   const toolCall = completion.choices[0].message.tool_calls?.[0];
-//   let reply = "";
-  
-
-//   if (toolCall && toolCall.type === "function" && toolCall.function && toolCall.function.arguments) {
-//     console.log("Model requested tool");
-//     const toolArgs = JSON.parse(toolCall.function.arguments as string);
-//     const similar = await searchSimilarQuestions(toolArgs.prompt);
-//     console.log("Database search result:", similar);
-//     const followup = await client.chat.completions.create({
-//       model: "kimi-k2-turbo-preview",
-//       messages: [
-//         completion.choices[0].message,
-//         {
-//           role: "function",
-//           name: "searchSimilarQuestions",
-//           content: JSON.stringify(similar),
-//         },
-//       ],
-//     });
-
-//     reply = followup.choices[0].message.content ?? "";
-//   } else {
-//     reply = completion.choices[0].message.content ?? "";
-//   }
-
-//   const { error: insertError } = await supabase
-//     .from('query_database')
-//     .insert([
-//       { query: prompt,
-//         answer: reply,
-//         user_id: user_id},
-//     ])
-//     .select()
-
-//   if (insertError) {
-//     console.error("INSERT ERROR")
-//     console.error(insertError);
-//   }
-
-//   return Response.json({ reply });
-// }
-
-// // ...existing code...
-
-// // 1. Define the tool function for searching similar questions
-// async function searchSimilarQuestions(prompt: string) {
-//   // Use pg_trgm or similar for fuzzy matching if available, or simple ILIKE for demo
-//   const { data, error } = await supabase
-//     .from('query_database')
-//     .select('query, answer, user_id')
-//     .ilike('query', `%${prompt}%`)
-//     .limit(3);
-
-//   if (error) {
-//     console.error("SEARCH ERROR", error);
-//     return [];
-//   }
-//   return data || [];
-// }
-
-// // 2. Add tool definition for OpenAI function calling
-// const tools = [
-//   {
-//     type: "function" as const,
-//     function: {
-//       name: "searchSimilarQuestions",
-//       description: "Searches for similar questions in the database and returns their query, answer, and user_id.",
-//       parameters: {
-//         type: "object",
-//         properties: {
-//           prompt: { type: "string", description: "The user's question to search for similar ones." }
-//         },
-//         required: ["prompt"]
-//       }
-//     }
-//   }
-// ];
+}
