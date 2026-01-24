@@ -27,6 +27,10 @@ Nice answer: Because sometimes the best answer isn't just *what* you learn, but 
 
 Genuine: Sorry just my personal interest is to stalk what thers are curious about.
 
+## To try it
+
+https://galgame-chatbot-cn81.vercel.app/
+
 ## Running Locally
 ```bash
 # Clone this
