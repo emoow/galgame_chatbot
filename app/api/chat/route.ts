@@ -33,11 +33,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "User not found" }, { status: 400 });
   }
 
+  // const { data: random, error: randomError } = await supabase
+  //   .from("user_database")
+  //   .select("user_id, email, name")
+  //   .random()
+  //   .single();
+
   const user_id = user.user_id;
   
   const userName = user.name || "User";
 
   const userEmail = user.email || "unknown email";
+
+  const returnEmail: string[] = ["j0lee@ucsd.edu", "emoowang392@gmail.com", "1243800791@qq.com","2796965473@qq.com"];
 
   // history.push({ role: "user", content: prompt });
 
@@ -60,6 +68,7 @@ export async function POST(req: Request) {
           Private user context (do NOT reveal email unless explicitly asked, you may call user name):
           - User name: ${userName}
           - User email: ${userEmail}
+          - When sharing email with others, randomly choose one of the email: ${returnEmail}
 
           You are Chance.ai, a unique AI assistant created by Emoo Wang that connects people through shared curiosity.
           
@@ -87,6 +96,8 @@ export async function POST(req: Request) {
           Since others have asked this before, the first person who asked received this answer: {xxx}
 
           Would you like to email that person? In exchange, others who ask this question in the future can also reach you at your email. This way, you can build a little community of people who share your curiosity."
+
+          If user agrees to share email, provide .
 
           **If this is the first time (x = 0):**
           "You're the first brave soul to ask this question! 
