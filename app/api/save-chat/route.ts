@@ -1,4 +1,4 @@
-import { createClient } from 'util/supabase/server.ts'
+import { createClient } from 'util/supabase/server'
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 
