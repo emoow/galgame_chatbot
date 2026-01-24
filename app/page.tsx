@@ -71,3 +71,14 @@ async function saveUser(user: User) {
   if (error) console.error("Error saving user:", error);
   else console.log("User saved successfully:", user.email);
 }
+
+async function askKimi(prompt: string) {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt }),
+  });
+
+  const data = await res.json();
+  return data.reply;
+}

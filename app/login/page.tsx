@@ -40,27 +40,65 @@ export default function LoginPage() {
 
   return (
 
-    <main className="flex items-center justify-center min-h-screen bg-gray-100">
-      {session ? (
-        <div>
-          <h2 className="text-lg font-medium text-gray-700">
-            Welcome, {session.user?.name}!
-          </h2>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 mt-4 text-white bg-red-500 rounded-lg hover:bg-red-600"
-          >
-            Sign Out
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={handleSignIn}
-          className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+    <main
+    className="flex items-center justify-center min-h-screen"
+    // style={{ backgroundColor: "#FFF2EB" }}
+    style={{
+    backgroundImage: "url('/background.jpeg')",
+}}
+    >
+    {/* <div className="absolute inset-0 bg-white/40" /> */}
+    <div
+    className="text-center w-[360px] h-[180px] p-8 rounded-3xl shadow-lg border-2"
+    style={{
+        backgroundColor: "#FFD8DF",
+        borderColor: "#FEEAC9",
+    }}
+    >
+    {session ? (
+        <>
+        <h2
+            className="text-2xl mb-6"
+            style={{ color: "#78C841" }}
         >
-          Sign in with Google
+            Hello, {session.user?.name} 🌱
+        </h2>
+
+        <button
+            onClick={handleSignOut}
+            className="px-8 py-4 rounded-full text-white border-2 transition-all duration-300"
+            style={{
+            backgroundColor: "#FFAAB8",
+            borderColor: "#FEEAC9",
+            }}
+        >
+            Sign Out
         </button>
-      )}
+        </>
+    ) : (
+        <>
+        <h2
+            className="text-2xl mb-6"
+            style={{ color: "#FD7979" }}
+        >
+            Welcome to Chance.ai 🌸
+        </h2>
+
+        <button
+            onClick={handleSignIn}
+            className="px-8 py-4 rounded-full text-white border-2 transition-all duration-300"
+            style={{
+            backgroundColor: "#A8DF8E",
+            borderColor: "#FEEAC9",
+            }}
+        >
+            Sign in
+        </button>
+        </>
+    )}
+    </div>
+
     </main>
+
   );
 }
