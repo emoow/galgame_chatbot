@@ -1,11 +1,12 @@
 import OpenAI from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions/completions.js";
 
 const client = new OpenAI({
   apiKey: process.env.MOONSHOT_API_KEY!,
-  baseURL: "https://api.moonshot/v1",
+  baseURL: "https://api.moonshot.cn/v1",
 });
 
-const history: any[] = [
+const history: ChatCompletionMessageParam[] = [
   {
     role: "system",
     content:
@@ -16,7 +17,11 @@ const history: any[] = [
 export async function POST(req: Request) {
   const { prompt } = await req.json();
 
+  console.log("Received prompt:", prompt);
+
   history.push({ role: "user", content: prompt });
+
+  console.log("Current conversation history:", history);
 
   const completion = await client.chat.completions.create({
     model: "kimi-k2-turbo-preview",

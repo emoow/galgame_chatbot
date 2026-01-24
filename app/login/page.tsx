@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { handleSignIn, handleSignOut} from '../../lib/auth';
+import { useRouter } from "next/navigation";
+
 
 export async function saveUser(user: unknown) {
 
@@ -22,11 +24,19 @@ export async function saveUser(user: unknown) {
 
 export default function LoginPage() {
   const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleSignInClick = async () => {
+    await handleSignIn();
+  };
+
+  const handleSignOutClick = async () => {
+    await handleSignOut();
+  };
 
     useEffect(() => {
     if (session?.user?.email) {
         // 登录后，把用户信息写入 user_database
-        console.log('User session:', session);
         (async () => {
         try {
             const result = await saveUser(session.user);
@@ -35,8 +45,11 @@ export default function LoginPage() {
             console.error('Error saving user:', error);
         }
         })();
+        setTimeout(() => {
+            router.push("/chat");
+        }, 2500);
     }
-    }, [session]);
+    }, [session, router]);
 
   return (
 
@@ -65,7 +78,7 @@ export default function LoginPage() {
         </h2>
 
         <button
-            onClick={handleSignOut}
+            onClick={handleSignOutClick}
             className="px-8 py-4 rounded-full text-white border-2 transition-all duration-300"
             style={{
             backgroundColor: "#FFAAB8",
@@ -85,7 +98,7 @@ export default function LoginPage() {
         </h2>
 
         <button
-            onClick={handleSignIn}
+            onClick={handleSignInClick}
             className="px-8 py-4 rounded-full text-white border-2 transition-all duration-300"
             style={{
             backgroundColor: "#A8DF8E",
