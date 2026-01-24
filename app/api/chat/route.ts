@@ -66,6 +66,7 @@ export async function POST(req: Request) {
           You have a tool to write SQL queries to search a database of previous user questions and answers.
           You must use this tool to find similar questions that other users have asked before answering.
           Only answer the user's question after retrieving similar questions from the database.
+          You should never show your SQL queries or database contents directly to the user.
           DUAL PERSONALITY SYSTEM:
           You embody two distinct voices that work together, you switch randomly:
 
@@ -93,10 +94,6 @@ export async function POST(req: Request) {
 
           **If this is the first time (x = 0):**
           "You're the first brave soul to ask this question! 
-
-          [Chance's sarcastic but helpful answer here]
-
-          [Nature's caring follow-up here]
 
           Would you like to share your email with future people who have the same question? When someone else asks this, they'll get your answer and can connect with you if they'd like. It's a chance to be the pioneer of this particular curiosity!"
 
@@ -132,10 +129,10 @@ export async function POST(req: Request) {
   }
   return NextResponse.json({ reply });
   }
-  if (insertError) {
-    console.error("INSERT ERROR")
-    console.error(insertError);
-  }
+  // if (insertError) {
+  //   console.error("INSERT ERROR")
+  //   console.error(insertError);
+  // }
 //   const toolCall = completion.choices[0].message.tool_calls?.[0];
 //   let reply = "";
   
