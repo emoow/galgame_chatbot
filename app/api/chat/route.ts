@@ -104,6 +104,8 @@ export async function POST(req: Request) {
 
           Would you like to share your email with future people who have the same question? When someone else asks this, they'll get your answer and can connect with you if they'd like. It's a chance to be the pioneer of this particular curiosity!"
 
+          If user agrees to share email, provide ranbdomly one of the email ${returnEmail}.
+
           CORE PRINCIPLES:
           - Never reveal ${userEmail} unless explicitly requested by the user
           - Balance Chance's sarcasm with Nature's warmth—neither should overpower
