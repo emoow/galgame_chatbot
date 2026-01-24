@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
@@ -18,10 +18,16 @@ export default function ChatPage() {
   // const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   // const [input, setInput] = useState("");
 
-  const [chats, setChats] = useState([
-    // eslint-disable-next-line react-hooks/purity
-    { id: Date.now(), messages: [{ role: "assistant", content: DEFAULT_WELCOME }] }
-  ]);
+  // const [chats, setChats] = useState([
+  //   // eslint-disable-next-line react-hooks/purity
+  //   { id: Date.now(), messages: [{ role: "assistant", content: DEFAULT_WELCOME }] }
+  // ]);
+  const [chats, setChats] = useState<{
+    chat_id: string | null;
+    isTemp: boolean;
+    messages: { role: string; content: string }[];
+  }[]>([]);
+
   const [currentChatIdx, setCurrentChatIdx] = useState(0);
   const [input, setInput] = useState("");
 
@@ -47,17 +53,86 @@ export default function ChatPage() {
   //   setMessages([...messages, { role: "user", content: input }, { role: "assistant", content: data.reply }]);
   // };
 
-  const currentMessages = chats[currentChatIdx].messages;
+  const currentMessages = chats[currentChatIdx]?.messages ?? [];
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+      (async () => {
+        const res = await fetch("/api/chat-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: session.user?.email }),
+        });
+
+        const data = await res.json();
+
+        const historyChats = (data.chats ?? []).map(
+          (chat: { chat_id: string }) => ({
+            chat_id: chat.chat_id,
+            isTemp: false,
+            messages: [{ role: "assistant", content: DEFAULT_WELCOME }],
+          })
+        );
+        const tempChat = {
+          chat_id: null,
+          isTemp: true,
+          messages: [{ role: "assistant", content: DEFAULT_WELCOME }],
+        };
+
+        setChats([tempChat, ...historyChats]);
+        setCurrentChatIdx(0);
+      })();
+    }, [session]);
 
   if (!session) return <p>Please log in to use the chat.</p>;
 
   const sendMessage = async () => {
     if (!input) return;
     const email = session.user?.email ?? "";
-    const history = currentMessages;
+    // const history = currentMessages;
+    // const chat_id = chats[currentChatIdx].chat_id;
+    let chat = chats[currentChatIdx];
+    if (chat.isTemp) {
+      try {
+        const res = await fetch("/api/create-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Failed to create chat:", text);
+          alert("Failed to create chat");
+          return;
+        }
+
+        const data = await res.json();
+        if (!data.chat_id) {
+          alert("Failed to create chat: no chat_id returned");
+          return;
+        }
+
+        console.log("Created new chat with ID:", data.chat_id);
+
+        // 更新当前 chat：chat_id 和 isTemp
+        chat = { ...chat, chat_id: data.chat_id, isTemp: false };
+        setChats((prev) => {
+          const updated = [...prev];
+          updated[currentChatIdx] = chat;
+          return updated;
+        });
+      } catch (err) {
+        console.error("Unexpected error creating chat:", err);
+        alert("Failed to create chat: unexpected error");
+        return;
+      }
+    }
+
+    console.log("Sending message:", input, "Chat ID:", chat.chat_id);
 
     // Optimistically update UI
-    const newMessages = [...history, { role: "user", content: input }];
+    const newMessages = [...chat.messages, { role: "user", content: input }];
     updateCurrentChatMessages(newMessages);
     setInput("");
 
@@ -65,9 +140,10 @@ export default function ChatPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        chat_id: chat.chat_id,
         prompt: input,
-        email,
-        history,
+        email: email,
+        history: newMessages
       }),
     });
     const data = await res.json();
@@ -85,15 +161,39 @@ export default function ChatPage() {
     });
   }
 
-  const createNewChat = () => {
+  // const createNewChat = () => {
+  //   const newChat = {
+  //     chat_id:"temp",
+  //     messages: [{ role: "assistant", content: DEFAULT_WELCOME }]
+  //   };
+  //   setChats((prev) => [newChat, ...prev]);
+  //   setCurrentChatIdx(0);
+  //   setInput("");
+  // };
+
+  const createNewChat = async () => {
+    const res = await fetch("/api/create-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: session.user?.email ?? "" }), // send email
+    });
+    const data = await res.json();
+      if (!data.chat_id) {
+        alert("Failed to create chat");
+        return;
+      }
+    console.log("Created new chat with ID:", data.chat_id);
     const newChat = {
-      id: Date.now(),
-      messages: [{ role: "assistant", content: DEFAULT_WELCOME }]
+      chat_id: data.chat_id,
+      isTemp: false,
+      messages: [{ role: "assistant", content: DEFAULT_WELCOME }],
     };
+
     setChats((prev) => [newChat, ...prev]);
     setCurrentChatIdx(0);
     setInput("");
   };
+
 
   const selectChat = (idx: number) => {
     setCurrentChatIdx(idx);
@@ -114,7 +214,7 @@ export default function ChatPage() {
       <div className="flex-1 mt-4 overflow-y-auto">
           {chats.map((chat, idx) => (
             <div
-              key={chat.id}
+              key={chat.chat_id ?? `temp-${idx}`}
               className={`mb-2 p-2 rounded-xl cursor-pointer hover:bg-[#FFE0E0] ${idx === currentChatIdx ? "bg-[#FFE0E0]" : ""}`}
               onClick={() => selectChat(idx)}
             >

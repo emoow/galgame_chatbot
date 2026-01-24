@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   
   const reply = completion.choices[0].message.content;
 
-  const { data, error: insertError } = await supabase
+  const { error: insertError } = await supabase
     .from('query_database')
     .insert([
       { query: prompt,
